@@ -87,8 +87,8 @@ jobs:
       - name: Format
         run: npm run format
 
-      - name: Build
-        run: npm run build:all
+      # - name: Build
+      #   run: npm run build:all
 
       - name: Remote branch exists
         run: |
@@ -101,7 +101,7 @@ jobs:
         run: |
           git add .
           git commit -m "Bumping version to ${RELEASE_VERSION} "
-          git push origin head
+          git push origin $RELEASE_BRANCH_NAME
 
       - name: Create Pull Request
         if: ${{ env.REMOTE_BRANCH_EXIST != true }}
