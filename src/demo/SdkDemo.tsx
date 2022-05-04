@@ -145,7 +145,95 @@ const SdkDemo: FunctionComponent<Props> = ({
       {token && queryParamToValueString.createCheck && applicantForm}
       {token && regionCode && tokenUrl && (
         <SdkMount
-          options={options}
+          options={{
+            ...options,
+            onComplete: (data) => {
+              console.log('data', data)
+            },
+            enterpriseFeatures: {
+              useCustomizedApiRequests: true,
+              onSubmitDocument: (documentData) => {
+                console.log('onSubmitDocument', documentData)
+                return {
+                  onfidoSuccessResponse: {
+                    applicant_id: '9e6bd2fd-7792-4d61-84b9-0baab1d3ae78',
+                    created_at: '2022-05-04T14:01:51Z',
+                    download_href:
+                      '/v3.3/documents/2cb43185-3975-40aa-b053-7d56472c3489/download',
+                    file_name: 'passport.jpg',
+                    file_size: 327310,
+                    file_type: 'jpg',
+                    href:
+                      '/v3.3/documents/2cb43185-3975-40aa-b053-7d56472c3489',
+                    id: '2cb43185-3975-40aa-b053-7d56472c3489',
+                    issuing_country: null,
+                    sdk_warnings: {
+                      image_quality: {
+                        breakdown: {
+                          blur: {
+                            blur_model: 'deep_blur',
+                            has_blur: false,
+                            max: 1,
+                            min: 0,
+                            score: 0.999986827373505,
+                            threshold: 0.221164236133333,
+                          },
+                          cutoff: {
+                            has_cutoff: false,
+                            max: 1,
+                            min: 0,
+                            score: 0.0448807854137447,
+                            threshold: 0.015,
+                          },
+                          document: {
+                            detection_score: 0.999889373779297,
+                            has_document: true,
+                            max: 1,
+                            min: 0,
+                            threshold: 0.0,
+                          },
+                          glare: {
+                            bbox: [
+                              699.651330471039,
+                              127.869314074516,
+                              892.391940951347,
+                              372.318295955658,
+                            ],
+                            glare_model: 'deep_glare',
+                            has_glare: false,
+                            score: 0.997379839420319,
+                            threshold: 0.0283260488510132,
+                          },
+                          has_document: true,
+                        },
+                        image_quality_uuid:
+                          '3f2b1ed8-1876-4573-835c-3b2e78e329a5',
+                        quality: 'good',
+                      },
+                    },
+                    side: 'front',
+                    type: 'passport',
+                  },
+                }
+              },
+              onSubmitSelfie: (selfieData) => {
+                console.log('onSubmitSelfie', selfieData)
+                return {
+                  onfidoSuccessResponse: {
+                    id: '046094c2-af51-4a4f-81d8-91fc6c36f6f0',
+                    created_at: '2022-05-04T14:03:44Z',
+                    file_name: 'applicant_selfie.png',
+                    file_type: 'image/png',
+                    file_size: 1545033,
+                    href:
+                      '/v3/live_photos/046094c2-af51-4a4f-81d8-91fc6c36f6f0',
+                    download_href:
+                      '/v3/live_photos/046094c2-af51-4a4f-81d8-91fc6c36f6f0/download',
+                  },
+                }
+              },
+            },
+          }}
           regionCode={regionCode}
           url={tokenUrl}
           workflow={!!workflowRunId}

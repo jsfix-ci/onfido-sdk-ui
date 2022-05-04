@@ -372,7 +372,7 @@ class Confirm extends Component<ConfirmProps, ConfirmState> {
     callbackName: CallbackNames
   ) => {
     const { enterpriseFeatures, method, token, urls } = this.props
-
+    console.log('onSubmitCallback', enterpriseFeatures, method)
     if (!token) {
       throw new Error('token not provided')
     }

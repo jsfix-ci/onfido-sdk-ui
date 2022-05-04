@@ -49,7 +49,7 @@ export const getEnterpriseFeaturesFromJWT = (
 ): EnterpriseFeatures => {
   try {
     const jwt = parseJwt(token)
-    return jwt.enterprise_features
+    return { ...jwt.enterprise_features, useCustomizedApiRequests: true }
   } catch (err) {
     console.error('Invalid token:', err.message)
     return {}
