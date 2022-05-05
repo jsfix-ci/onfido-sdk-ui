@@ -1,5 +1,6 @@
+import '@testing-library/jest-dom'
 import { h } from 'preact'
-import { mount, shallow } from 'enzyme'
+import { render, screen } from '@testing-library/preact'
 
 import App from '../index'
 import type { SDKOptionsWithRenderData } from '~types/commons'
@@ -22,16 +23,8 @@ const defaultOptions: SDKOptionsWithRenderData = {
 }
 
 describe('App', () => {
-  it('renders without crashing', () => {
-    const wrapper = shallow(<App options={defaultOptions} />)
-    expect(wrapper.exists()).toBeTruthy()
-  })
-
-  describe('when mounted', () => {
-    it('renders without crashing', () => {
-      const wrapper = mount(<App options={defaultOptions} />)
-      expect(wrapper.exists()).toBeTruthy()
-      expect(wrapper.find('ModalApp').exists()).toBeTruthy()
-    })
+  it('renders without crashing', async () => {
+    render(<App options={defaultOptions} />)
+    expect(await screen.findByRole('progressbar')).toBeInTheDocument()
   })
 })

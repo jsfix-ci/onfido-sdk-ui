@@ -1,8 +1,8 @@
+import '@testing-library/jest-dom'
 import { h } from 'preact'
-import { mount } from 'enzyme'
+import { render, screen } from '@testing-library/preact'
 
 import MockedReduxProvider from '~jest/MockedReduxProvider'
-import { LocaleProvider } from '~locales'
 import ModalApp from '../ModalApp'
 
 import type { SDKOptionsWithRenderData } from '~types/commons'
@@ -22,14 +22,12 @@ const defaultOptions: SDKOptionsWithRenderData = {
 }
 
 describe('ModalApp', () => {
-  it('renders without crashing', () => {
-    const wrapper = mount(
+  it('renders without crashing', async () => {
+    render(
       <MockedReduxProvider>
         <ModalApp options={defaultOptions} />
       </MockedReduxProvider>
     )
-
-    expect(wrapper.exists()).toBeTruthy()
-    expect(wrapper.find(LocaleProvider).exists()).toBeTruthy()
+    expect(await screen.findByRole('progressbar')).toBeInTheDocument()
   })
 })
