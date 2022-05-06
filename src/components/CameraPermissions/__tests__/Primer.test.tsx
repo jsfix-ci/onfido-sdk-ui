@@ -1,5 +1,6 @@
+import '@testing-library/jest-dom'
 import { h } from 'preact'
-import { mount, shallow } from 'enzyme'
+import { fireEvent, render, screen } from '@testing-library/preact'
 
 import MockedLocalised from '~jest/MockedLocalised'
 import MockedReduxProvider from '~jest/MockedReduxProvider'
@@ -10,26 +11,31 @@ const defaultProps = {
   trackScreen: jest.fn(),
 }
 
+const renderPrimer = (audio?: boolean) =>
+  render(
+    <MockedReduxProvider>
+      <MockedLocalised>
+        <Primer {...defaultProps} audio={audio} />
+      </MockedLocalised>
+    </MockedReduxProvider>
+  )
+
 describe('CameraPermissions', () => {
   describe('Primer', () => {
-    it('renders without crashing', () => {
-      const wrapper = shallow(<Primer {...defaultProps} />)
-      expect(wrapper.exists()).toBeTruthy()
+    it('asks permissions for camera only', () => {
+      renderPrimer()
+      expect(screen.getByText(/permission.title_cam/i))
     })
 
-    describe('when mounted', () => {
-      it('renders without crashing', () => {
-        const wrapper = mount(
-          <MockedReduxProvider>
-            <MockedLocalised>
-              <Primer {...defaultProps} />
-            </MockedLocalised>
-          </MockedReduxProvider>
-        )
+    it('asks permissions for camera and audio', () => {
+      renderPrimer(true)
+      expect(screen.getByText(/permission.title_both/i))
+    })
 
-        expect(wrapper.exists()).toBeTruthy()
-        expect(wrapper.find('PageTitle').exists()).toBeTruthy()
-      })
+    it('allows user to accept permissions', () => {
+      renderPrimer()
+      fireEvent.click(screen.getByText(/permission.button_primary_cam/))
+      expect(defaultProps.onNext).toHaveBeenCalled()
     })
   })
 })

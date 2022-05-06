@@ -1,37 +1,38 @@
-import { h, FunctionComponent } from 'preact'
-import { mount } from 'enzyme'
+import { h } from 'preact'
+import { render, screen } from '@testing-library/preact'
 
 import MockedLocalised from '~jest/MockedLocalised'
 import MockedReduxProvider from '~jest/MockedReduxProvider'
 import { checkIfWebcamPermissionGranted } from '~utils'
 import withPermissionsFlow from '../withPermissionsFlow'
 
-import type { WithTrackingProps } from '~types/hocs'
-import type { RenderFallbackProp } from '~types/routers'
+import { ButtonType } from '~types/camera'
 
 jest.mock('~utils')
 
-type DummyProps = {
-  renderFallback: RenderFallbackProp
-} & WithTrackingProps
-
-const DummyComponent: FunctionComponent<DummyProps> = () => (
-  <span>Dummy component</span>
-)
-
-const WrappedComponent = withPermissionsFlow(DummyComponent)
+const WrappedComponent = withPermissionsFlow(() => <span>Dummy component</span>)
 
 const defaultProps = {
   renderFallback: jest.fn(),
   trackScreen: jest.fn(),
+  buttonType: `none` as ButtonType,
 }
 
 const mockedCheckWebcamPermission = checkIfWebcamPermissionGranted as jest.MockedFunction<
   typeof checkIfWebcamPermissionGranted
 >
 
+const renderDummyComponent = () =>
+  render(
+    <MockedReduxProvider>
+      <MockedLocalised>
+        <WrappedComponent {...defaultProps} />
+      </MockedLocalised>
+    </MockedReduxProvider>
+  )
+
 describe('CameraPermissions', () => {
-  describe('Primer', () => {
+  describe('withPermissionsFlow', () => {
     afterEach(() => {
       jest.clearAllMocks()
     })
@@ -44,19 +45,10 @@ describe('CameraPermissions', () => {
       })
 
       it('renders PermissionsPrimer', () => {
-        const wrapper = mount(
-          <MockedReduxProvider>
-            <MockedLocalised>
-              <WrappedComponent {...defaultProps} buttonType="none" />
-            </MockedLocalised>
-          </MockedReduxProvider>
-        )
-
-        expect(wrapper.exists()).toBeTruthy()
-        expect(wrapper.find('Permissions').exists()).toBeTruthy()
+        renderDummyComponent()
+        expect(screen.getByText(/permission.title_cam/i))
       })
     })
-
     describe('when webcam permissions granted', () => {
       beforeEach(() => {
         mockedCheckWebcamPermission.mockImplementation((callback) =>
@@ -65,16 +57,8 @@ describe('CameraPermissions', () => {
       })
 
       it('renders wrapped component', () => {
-        const wrapper = mount(
-          <MockedReduxProvider>
-            <MockedLocalised>
-              <WrappedComponent {...defaultProps} buttonType="none" />
-            </MockedLocalised>
-          </MockedReduxProvider>
-        )
-
-        expect(wrapper.exists()).toBeTruthy()
-        expect(wrapper.find(DummyComponent).exists()).toBeTruthy()
+        renderDummyComponent()
+        expect(screen.getByText(/Dummy Component/i))
       })
     })
   })
