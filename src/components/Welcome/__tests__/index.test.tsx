@@ -1,6 +1,6 @@
+import '@testing-library/jest-dom'
 import { h } from 'preact'
-import { mount, shallow, ReactWrapper } from 'enzyme'
-
+import { render, screen } from '@testing-library/preact'
 import { SdkOptionsProvider } from '~contexts/useSdkOptions'
 import MockedLocalised from '~jest/MockedLocalised'
 import MockedReduxProvider, {
@@ -35,109 +35,80 @@ const defaultProps: StepComponentBaseProps = {
   completeStep: jest.fn(),
 }
 
-const findButton = (wrapper: ReactWrapper) =>
-  wrapper.find({ 'data-onfido-qa': 'welcome-next-btn' })
+const findButton = () => screen.getByText(/welcome.next_button/i)
+
+const renderWelcome = (sdkOptions: NarrowSdkOptions = defaultOptions) =>
+  render(
+    <MockedReduxProvider>
+      <SdkOptionsProvider options={sdkOptions}>
+        <MockedLocalised>
+          <Welcome {...defaultProps} />
+        </MockedLocalised>
+      </SdkOptionsProvider>
+    </MockedReduxProvider>
+  )
 
 describe('Welcome', () => {
-  it('renders without crashing', () => {
-    const wrapper = shallow(<Welcome {...defaultProps} />)
-    expect(wrapper.exists()).toBeTruthy()
+  it('renders Welcome with correct elements', () => {
+    renderWelcome()
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      /welcome.title/i
+    )
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
+      /welcome.subtitle/i
+    )
+
+    expect(screen.getByText(/welcome.list_header_webcam/i)).toBeInTheDocument()
+    expect(screen.getByText(/welcome.list_item_doc/i)).toBeInTheDocument()
+
+    expect(findButton()).toHaveTextContent(/welcome.next_button/i)
   })
 
-  describe('when mounted', () => {
+  it('renders correct PageTitle with no welcome step', () => {
+    renderWelcome({ steps: [] })
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      /welcome.title/i
+    )
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
+      /welcome.subtitle/i
+    )
+  })
+
+  it('renders correct PageTitle with custom title', () => {
+    renderWelcome({
+      steps: [{ type: 'welcome', options: { title: 'Fake title' } }],
+    })
+
+    expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+      /Fake title/i
+    )
+    expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
+      /welcome.subtitle/i
+    )
+  })
+
+  describe('with document video step', () => {
     it('renders Welcome with correct elements', () => {
-      const wrapper = mount(
-        <MockedReduxProvider>
-          <SdkOptionsProvider options={defaultOptions}>
-            <MockedLocalised>
-              <Welcome {...defaultProps} />
-            </MockedLocalised>
-          </SdkOptionsProvider>
-        </MockedReduxProvider>
-      )
-
-      expect(wrapper.exists()).toBeTruthy()
-      expect(wrapper.find('PageTitle .title').text()).toEqual('welcome.title')
-      expect(wrapper.find('PageTitle .subTitle').text()).toEqual(
-        'welcome.subtitle'
-      )
-      expect(wrapper.find('DefaultContent').exists()).toBeTruthy()
-      expect(wrapper.find('DocVideoContent').exists()).toBeFalsy()
-      expect(wrapper.find('WelcomeActions').exists()).toBeTruthy()
-      expect(findButton(wrapper).text()).toEqual('welcome.next_button')
-    })
-
-    it('renders correct PageTitle with no welcome step', () => {
-      const wrapper = mount(
-        <MockedReduxProvider>
-          <SdkOptionsProvider options={{ steps: [] }}>
-            <MockedLocalised>
-              <Welcome {...defaultProps} />
-            </MockedLocalised>
-          </SdkOptionsProvider>
-        </MockedReduxProvider>
-      )
-
-      expect(wrapper.exists()).toBeTruthy()
-      expect(wrapper.find('PageTitle .title').text()).toEqual('welcome.title')
-      expect(wrapper.find('PageTitle .subTitle').text()).toEqual(
-        'welcome.subtitle'
-      )
-    })
-
-    it('renders correct PageTitle with custom title', () => {
-      const wrapper = mount(
-        <MockedReduxProvider>
-          <SdkOptionsProvider
-            options={{
-              steps: [{ type: 'welcome', options: { title: 'Fake title' } }],
-            }}
-          >
-            <MockedLocalised>
-              <Welcome {...defaultProps} />
-            </MockedLocalised>
-          </SdkOptionsProvider>
-        </MockedReduxProvider>
-      )
-
-      expect(wrapper.exists()).toBeTruthy()
-      expect(wrapper.find('PageTitle .title').text()).toEqual('Fake title')
-      expect(wrapper.find('PageTitle .subTitle').text()).toEqual(
-        'welcome.subtitle'
-      )
-    })
-
-    describe('with document video step', () => {
-      const options: NarrowSdkOptions = {
-        ...defaultOptions,
+      renderWelcome({
         steps: [
           { type: 'welcome' },
           { type: 'document', options: { requestedVariant: 'video' } },
         ],
-      }
-
-      it('renders Welcome with correct elements', () => {
-        const wrapper = mount(
-          <MockedReduxProvider>
-            <SdkOptionsProvider options={options}>
-              <MockedLocalised>
-                <Welcome {...defaultProps} />
-              </MockedLocalised>
-            </SdkOptionsProvider>
-          </MockedReduxProvider>
-        )
-
-        expect(wrapper.exists()).toBeTruthy()
-        expect(wrapper.find('PageTitle .title').text()).toEqual('welcome.title')
-        expect(wrapper.find('PageTitle .subTitle').text()).toEqual(
-          'welcome.subtitle'
-        )
-        expect(wrapper.find('DefaultContent').exists()).toBeFalsy()
-        expect(wrapper.find('DocVideoContent').exists()).toBeTruthy()
-        expect(wrapper.find('WelcomeActions').exists()).toBeTruthy()
-
-        expect(findButton(wrapper).text()).toEqual('welcome.next_button')
       })
+      expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent(
+        /welcome.title/i
+      )
+      expect(screen.getByRole('heading', { level: 2 })).toHaveTextContent(
+        /welcome.subtitle/i
+      )
+
+      expect(
+        screen.getByText(/welcome.list_header_doc_video/i)
+      ).toBeInTheDocument()
+
+      expect(findButton()).toHaveTextContent(/welcome.next_button/i)
     })
   })
 })

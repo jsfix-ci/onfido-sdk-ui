@@ -1,5 +1,6 @@
+import '@testing-library/jest-dom'
 import { h } from 'preact'
-import { mount, ReactWrapper } from 'enzyme'
+import { render, screen } from '@testing-library/preact'
 
 import MockedLocalised, { mockedTranslate } from '~jest/MockedLocalised'
 import { DefaultContent, DocVideoContent } from '../Content'
@@ -12,30 +13,32 @@ mockedTranslate.mockImplementation((str) => {
   return str
 })
 
-const assertContent = (wrapper: ReactWrapper, forDocVideo: boolean) => {
-  expect(wrapper.find('.instructions > span').text()).toEqual(
-    forDocVideo ? 'welcome.list_header_doc_video' : 'welcome.list_header_webcam'
-  )
-  const items = wrapper.find('.instructions > ol li')
-  expect(items.at(0).text()).toEqual('welcome.list_item_doc')
-  expect(items.at(1).text()).toEqual('welcome.list_item_selfie')
+const assertContent = (forDocVideo: boolean) => {
+  expect(
+    screen.getByText(
+      forDocVideo
+        ? 'welcome.list_header_doc_video'
+        : 'welcome.list_header_webcam'
+    )
+  ).toBeInTheDocument()
+
+  expect(screen.getByText('welcome.list_item_doc')).toBeInTheDocument()
+  expect(screen.getByText('welcome.list_item_selfie')).toBeInTheDocument()
 }
 
 describe('Welcome', () => {
   describe('DefaultContent', () => {
     it('renders correct elements', () => {
-      const wrapper = mount(
+      render(
         <MockedLocalised>
           <DefaultContent captureSteps={['document', 'face']} />
         </MockedLocalised>
       )
-
-      expect(wrapper.exists()).toBeTruthy()
-      assertContent(wrapper, false)
+      assertContent(false)
     })
 
     it('renders correct elements with custom descriptions', () => {
-      const wrapper = mount(
+      render(
         <MockedLocalised>
           <DefaultContent
             captureSteps={[]}
@@ -48,27 +51,22 @@ describe('Welcome', () => {
         </MockedLocalised>
       )
 
-      expect(wrapper.exists()).toBeTruthy()
-
-      const descriptions = wrapper.find('.content p')
-      expect(descriptions.at(0).text()).toMatch('Fake description 1')
-      expect(descriptions.at(1).text()).toMatch('Fake description 2')
-      expect(descriptions.at(2).text()).toMatch('Fake description 3')
+      expect(screen.getByText('Fake description 1')).toBeInTheDocument()
+      expect(screen.getByText('Fake description 2')).toBeInTheDocument()
+      expect(screen.getByText('Fake description 3')).toBeInTheDocument()
     })
   })
 
   describe('DocVideoContent', () => {
     it('renders correct elements', () => {
-      const wrapper = mount(
+      render(
         <MockedLocalised>
           <DocVideoContent captureSteps={['welcome', 'document', 'face']} />
         </MockedLocalised>
       )
 
-      expect(wrapper.exists()).toBeTruthy()
-
-      assertContent(wrapper, true)
-      expect(wrapper.find('.recordingLimit').text()).toEqual('timeout: 30')
+      assertContent(true)
+      expect(screen.getByText('timeout: 30')).toBeInTheDocument()
     })
   })
 })
