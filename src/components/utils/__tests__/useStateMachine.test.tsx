@@ -1,5 +1,5 @@
 import { h, FunctionComponent } from 'preact'
-import { shallow, ShallowWrapper } from 'enzyme'
+import { fireEvent, render, screen } from '@testing-library/preact'
 import useStateMachine, { MachineSpec } from '../useStateMachine'
 
 type LightStates = 'green' | 'yellow' | 'red' | 'off'
@@ -34,80 +34,80 @@ const DummyComponent: FunctionComponent<DummyProps> = ({ initialState }) => {
 
   return (
     <div>
-      <span id="light">{light}</span>
-      <button id="switchLight" onClick={() => dispatchAction('TIMED_OUT')}>
+      <span data-testid="light">{light}</span>
+      <button
+        data-testid="switchLight"
+        onClick={() => dispatchAction('TIMED_OUT')}
+      >
         Switch light
       </button>
-      <button id="error" onClick={() => dispatchAction('ERROR')}>
+      <button data-testid="error" onClick={() => dispatchAction('ERROR')}>
         Trigger error
       </button>
     </div>
   )
 }
 
-const simulateSwitchLight = (wrapper: ShallowWrapper, times: number) => {
-  const switchLight = wrapper.find('#switchLight')
+const simulateSwitchLight = (times: number) => {
+  const switchLight = screen.getByTestId('switchLight')
   Array(times)
     .fill(null)
-    .forEach(() => switchLight.simulate('click'))
+    .forEach(() => fireEvent.click(switchLight))
 }
 
-const assertLightState = (wrapper: ShallowWrapper, light: LightStates) => {
-  expect(wrapper.find('#light').text()).toEqual(light)
+const assertLightState = (light: LightStates) => {
+  expect(screen.getByTestId('light').textContent).toEqual(light)
 }
 
 describe('utils', () => {
-  describe('useStateMachine', () => {
-    let wrapper: ShallowWrapper
-
+  describe('useStateMachine with initialState=green', () => {
     beforeEach(() => {
-      wrapper = shallow(<DummyComponent initialState="green" />)
+      render(<DummyComponent initialState="green" />)
     })
 
-    it('returns correct state initially', () =>
-      assertLightState(wrapper, 'green'))
+    it('returns correct state initially', () => assertLightState('green'))
 
     it('returns correct state when switch light 1 times', () => {
-      simulateSwitchLight(wrapper, 1)
-      assertLightState(wrapper, 'yellow')
+      simulateSwitchLight(1)
+      assertLightState('yellow')
     })
 
     it('returns correct state when switch light 2 times', () => {
-      simulateSwitchLight(wrapper, 2)
-      assertLightState(wrapper, 'red')
+      simulateSwitchLight(2)
+      assertLightState('red')
     })
 
     it('returns correct state when error', () => {
-      wrapper.find('#error').simulate('click')
-      assertLightState(wrapper, 'red')
+      fireEvent.click(screen.getByTestId('error'))
+      assertLightState('red')
     })
 
     it('returns correct state when error after switch light', () => {
-      simulateSwitchLight(wrapper, 1) // should be yellow
-      wrapper.find('#error').simulate('click')
-      assertLightState(wrapper, 'red')
+      simulateSwitchLight(1) // should be yellow
+      fireEvent.click(screen.getByTestId('error'))
+      assertLightState('red')
     })
 
     it('does nothing when error on red light', () => {
-      simulateSwitchLight(wrapper, 2) // should be red
-      wrapper.find('#error').simulate('click')
-      assertLightState(wrapper, 'red')
+      simulateSwitchLight(2) // should be red
+      fireEvent.click(screen.getByTestId('error'))
+      assertLightState('red')
+    })
+  })
+
+  describe('useStateMachine with initialState=error', () => {
+    beforeEach(() => {
+      render(<DummyComponent initialState="off" />)
     })
 
-    describe('with initialState=error', () => {
-      beforeEach(() => {
-        wrapper = shallow(<DummyComponent initialState="off" />)
-      })
+    it('remains error in any cases', () => {
+      assertLightState('off')
 
-      it('remains error in any cases', () => {
-        assertLightState(wrapper, 'off')
+      simulateSwitchLight(1)
+      assertLightState('off')
 
-        simulateSwitchLight(wrapper, 1)
-        assertLightState(wrapper, 'off')
-
-        simulateSwitchLight(wrapper, 2)
-        assertLightState(wrapper, 'off')
-      })
+      simulateSwitchLight(2)
+      assertLightState('off')
     })
   })
 })
