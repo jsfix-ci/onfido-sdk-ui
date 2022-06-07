@@ -33,6 +33,9 @@ This project adheres to the Node [default version scheme](https://docs.npmjs.com
 - Internal: Upgrade `typescript` to 4.6.2
 - Public: Fix inline style to support Content Security Policy
 - Public: Add UI customization option for `colorBackgroundQRCode`
+- Public: Add UI customization options for buttons hover & active states
+- Public: Add UI customization options for giving small icons a custom color
+- Public: Add UI customization option for input `outline-color`
 
 ## [8.0.0] - 2022-04-21
 
