@@ -10,6 +10,9 @@ import { dirname, relative, resolve } from 'path'
 import CopyPlugin from 'copy-webpack-plugin'
 import TerserPlugin from 'terser-webpack-plugin'
 import nodeExternals from 'webpack-node-externals'
+import { ModifySourcePlugin } from 'modify-source-webpack-plugin'
+
+import { appendLogging } from './build/morph'
 
 // NODE_ENV can be one of: development | staging | test | production
 const NODE_ENV = process.env.NODE_ENV || 'production'
@@ -27,13 +30,10 @@ const baseRules = () => {
   return [
     {
       test: /\.(js|ts)x?$/,
-      use: [
-        'thread-loader',
-        {
-          loader: 'babel-loader',
-          options: { configFile: resolve('babel.config.js') },
-        },
-      ],
+      use: {
+        loader: 'babel-loader',
+        options: { configFile: resolve('babel.config.js') },
+      },
       resolve: {
         fullySpecified: false,
       },
@@ -206,6 +206,19 @@ const formatDefineHash = (defineHash) => {
 const WOOPRA_WINDOW_KEY = 'onfidoSafeWindow8xmy484y87m239843m20'
 
 const basePlugins = (bundle_name = '') => [
+  new ModifySourcePlugin({
+    rules: [
+      {
+        test: /\.tsx$/,
+        modify: (src, path) => {
+          if (process.env.BUILD_MODE !== 'hot') {
+            return appendLogging(path)
+          }
+          return src
+        },
+      },
+    ],
+  }),
   new Visualizer({
     filename: `./reports/statistics.html`,
   }),
@@ -257,6 +270,7 @@ const baseConfig = {
       '~contexts': `${__dirname}/src/contexts`,
       '~locales': `${__dirname}/src/locales`,
       '~types': `${__dirname}/src/types`,
+      '~core': `${__dirname}/src/core`,
       '~utils': `${__dirname}/src/components/utils`,
       '~supported-documents': `${__dirname}/src/supported-documents`,
       '~auth-sdk': `${__dirname}/auth-sdk/FaceTec`,
@@ -276,7 +290,7 @@ const baseConfig = {
 
   node: {
     global: true,
-    __filename: false,
+    __filename: true,
     __dirname: false,
   },
 
@@ -319,6 +333,8 @@ const configDist = () => ({
   optimization: {
     nodeEnv: false, // otherwise it gets set by mode, see: https://webpack.js.org/concepts/mode/
     chunkIds: 'named',
+    moduleIds: 'named',
+    sideEffects: false,
     splitChunks: {
       cacheGroups: {
         defaultVendors: false,
@@ -371,7 +387,8 @@ const configDist = () => ({
     hot: true,
     historyApiFallback: true,
     static: './dist',
-    allowedHosts: 'all', // necessary to test in IE with virtual box, since it goes through a proxy, see: https://github.com/webpack/webpack-dev-server/issues/882
+    // necessary to test in IE with virtual box, since it goes through a proxy, see: https://github.com/webpack/webpack-dev-server/issues/882
+    allowedHosts: 'all',
     devMiddleware: {
       publicPath: '/',
     },
@@ -384,6 +401,10 @@ const minimizer = (banner = false) =>
         new TerserPlugin({
           parallel: true,
           extractComments: false,
+          terserOptions: {
+            keep_fnames: true,
+            keep_classnames: true,
+          },
         }),
         banner &&
           new webpack.BannerPlugin({
@@ -424,6 +445,8 @@ const configNpmLib = () => ({
   optimization: {
     nodeEnv: false,
     chunkIds: 'named',
+    moduleIds: 'named',
+    sideEffects: false,
     splitChunks: {
       chunks: 'all',
     },
@@ -465,16 +488,28 @@ const configNpmLib = () => ({
   ],
 })
 
+// TODO: fix plugins: https://github.com/stephencookdev/speed-measure-webpack-plugin
 // Workaround for https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/167
-const smp = new SpeedMeasurePlugin()
-const configWithSpeedMeasures = smp.wrap(configDist())
-configWithSpeedMeasures.plugins.unshift(
+// const smp = new SpeedMeasurePlugin()
+// const configWithSpeedMeasures = smp.wrap(configDist())
+// configWithSpeedMeasures.plugins.unshift(
+//   new MiniCssExtractPlugin({
+//     filename: 'style.css',
+//     chunkFilename: `onfido${SDK_ENV === 'Auth' ? SDK_ENV : ''}.[name].css`,
+//   })
+// )
+
+// export default SDK_ENV === 'Auth'
+//   ? [configWithSpeedMeasures]
+//   : [configWithSpeedMeasures, configNpmLib()]
+
+const d = configDist()
+d.plugins.unshift(
   new MiniCssExtractPlugin({
     filename: 'style.css',
     chunkFilename: `onfido${SDK_ENV === 'Auth' ? SDK_ENV : ''}.[name].css`,
   })
 )
 
-export default SDK_ENV === 'Auth'
-  ? [configWithSpeedMeasures]
-  : [configWithSpeedMeasures, configNpmLib()]
+// export default [d]
+export default SDK_ENV === 'Auth' ? [d] : [d, configNpmLib()]

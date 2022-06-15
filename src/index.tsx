@@ -21,6 +21,11 @@ import type { SdkOptions, SdkHandle } from '~types/sdk'
 import type { StepConfig, StepTypes } from '~types/steps'
 import App from './components/App'
 
+import { Logger, logger } from './core/logging/Logger'
+console.log('Logger', Logger)
+
+logger.fatal('fatal message 2')
+
 if (process.env.NODE_ENV === 'development') {
   require('preact/debug')
 }
