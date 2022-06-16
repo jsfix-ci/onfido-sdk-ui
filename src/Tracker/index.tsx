@@ -1,9 +1,8 @@
 import { h, Component, ComponentType } from 'preact'
-import { BrowserClient, EventHint, Hub, Severity } from '@sentry/browser'
 import { cleanFalsy, wrapArray } from '~utils/array'
 import WoopraTracker from './safeWoopra'
 import { map as mapObject } from '~utils/object'
-import { isOnfidoHostname } from '~utils/string'
+import * as ExeceptionTracking from '~core/exceptionTracking'
 import { sendAnalyticsEvent } from './onfidoTracker'
 import { integratorTrackedEvents } from './trackerData'
 import { v4 as uuidv4 } from 'uuid'
@@ -20,8 +19,6 @@ let shouldSendEvents = false
 
 const client = window.location.hostname
 const sdk_version = process.env.SDK_VERSION
-let sentryClient: BrowserClient | undefined
-let sentryHub: Hub | undefined
 let woopra: WoopraTracker = null
 
 const setUp = (): void => {
@@ -47,13 +44,7 @@ const setUp = (): void => {
 }
 
 const uninstall = (): void => {
-  if (sentryClient) {
-    sentryClient.close(2000).then(() => {
-      sentryClient = undefined
-      sentryHub = undefined
-      process.exit()
-    })
-  }
+  ExeceptionTracking.uninstall()
   uninstallWoopra()
 }
 
@@ -63,32 +54,7 @@ const uninstallWoopra = (): void => {
 }
 
 const install = (): void => {
-  sentryClient = new BrowserClient({
-    dsn: 'https://6e3dc0335efc49889187ec90288a84fd@sentry.io/109946',
-    environment: process.env.NODE_ENV,
-    release: sdk_version,
-    debug: true,
-    // TODO: Make sure the whitelisting works as expected
-    whitelistUrls: [/onfido[A-z.]*\.min.js/g],
-    beforeBreadcrumb: (crumb) => {
-      const isOnfidoXhr =
-        crumb.category === 'xhr' && isOnfidoHostname(crumb.data?.url)
-
-      const isOnfidoClick =
-        crumb.category === 'ui.click' &&
-        crumb.message?.includes('.onfido-sdk-ui')
-
-      const shouldReturnCrumb = isOnfidoXhr || isOnfidoClick
-
-      return shouldReturnCrumb ? crumb : null
-    },
-    // @TODO: verify these mismatched options
-    // autoBreadcrumbs: { console: false },
-    // shouldSendCallback: () => process.env.PRODUCTION_BUILD,
-  })
-  sentryHub = new Hub(sentryClient)
-  sentryHub.addBreadcrumb({ level: Severity.Info })
-
+  ExeceptionTracking.install()
   shouldSendEvents = true
 }
 
@@ -182,9 +148,7 @@ const trackComponent = <P extends WithTrackingProps>(
     render = () => <WrappedComponent {...this.props} />
   }
 
-const trackException = (message: string, extra?: EventHint): void => {
-  sentryHub?.captureException(new Error(message), extra)
-}
+const trackException = ExeceptionTracking.trackException
 
 const setWoopraCookie = (cookie: string): void => {
   if (!woopra) {

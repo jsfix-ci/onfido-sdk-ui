@@ -6,7 +6,7 @@
 */
 
 import { h, Component } from 'preact'
-import Logger from './Logger'
+import Logger from '../logging/Logger'
 
 class ErrorBoundary extends Component {
   state = { error: null }
