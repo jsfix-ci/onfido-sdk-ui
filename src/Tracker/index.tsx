@@ -2,7 +2,7 @@ import { h, Component, ComponentType } from 'preact'
 import { cleanFalsy, wrapArray } from '~utils/array'
 import WoopraTracker from './safeWoopra'
 import { map as mapObject } from '~utils/object'
-import * as ExeceptionTracking from '~core/exceptionTracking'
+import * as execeptionTracking from '~core/ExceptionHandler'
 import { sendAnalyticsEvent } from './onfidoTracker'
 import { integratorTrackedEvents } from './trackerData'
 import { v4 as uuidv4 } from 'uuid'
@@ -14,6 +14,7 @@ import type {
   UserAnalyticsEventNames,
   UserAnalyticsEventDetail,
 } from '~types/tracker'
+import type { EventHint } from '~core/ExceptionHandler'
 
 let shouldSendEvents = false
 
@@ -44,7 +45,7 @@ const setUp = (): void => {
 }
 
 const uninstall = (): void => {
-  ExeceptionTracking.uninstall()
+  execeptionTracking.uninstall()
   uninstallWoopra()
 }
 
@@ -54,7 +55,7 @@ const uninstallWoopra = (): void => {
 }
 
 const install = (): void => {
-  ExeceptionTracking.install()
+  execeptionTracking.install()
   shouldSendEvents = true
 }
 
@@ -148,7 +149,12 @@ const trackComponent = <P extends WithTrackingProps>(
     render = () => <WrappedComponent {...this.props} />
   }
 
-const trackException = ExeceptionTracking.trackException
+const trackException = (message: string, extra?: EventHint): void => {
+  execeptionTracking?.captureException(
+    new Error(message),
+    extra as Record<string, unknown>
+  )
+}
 
 const setWoopraCookie = (cookie: string): void => {
   if (!woopra) {

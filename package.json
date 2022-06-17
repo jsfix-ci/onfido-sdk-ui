@@ -9,9 +9,9 @@
   },
   "license": "SEE LICENSE IN ./LICENSE",
   "scripts": {
-    "dev": "BUILD_MODE=hot NODE_ENV=development HTTPS=true webpack serve --progress",
-    "dev:auth": "BUILD_MODE=hot NODE_ENV=development SDK_ENV=Auth HTTPS=true webpack serve --progress",
-    "dev:insecure": "BUILD_MODE=hot NODE_ENV=development webpack serve --progress",
+    "dev": "HOT_RELOAD_ENABLED=true NODE_ENV=development HTTPS=true webpack serve --progress",
+    "dev:auth": "HOT_RELOAD_ENABLED=true NODE_ENV=development SDK_ENV=Auth HTTPS=true webpack serve --progress",
+    "dev:insecure": "HOT_RELOAD_ENABLED=true NODE_ENV=development webpack serve --progress",
     "travis": "node_modules/http-server/bin/http-server dist/ -S -C test/cert.pem -K test/key.pem",
     "prebuild": "npm run clean",
     "build": "webpack",
@@ -70,6 +70,7 @@
       "^~contexts(.*)$": "<rootDir>/src/contexts$1",
       "^~locales(.*)$": "<rootDir>/src/locales$1",
       "^~types(.*)$": "<rootDir>/src/types$1",
+      "^~core(.*)$": "<rootDir>/src/core$1",
       "^~utils(.*)$": "<rootDir>/src/components/utils$1",
       "^~supported-documents(.*)$": "<rootDir>/src/supported-documents$1",
       "^Tracker(.*)$": "<rootDir>/src/Tracker$1",
@@ -92,11 +93,11 @@
     "files": [
       {
         "path": "./dist/onfido.min.js",
-        "maxSize": "338 kB"
+        "maxSize": "400 kB"
       },
       {
         "path": "./dist/onfido.crossDevice.min.js",
-        "maxSize": "70 kB"
+        "maxSize": "75 kB"
       },
       {
         "path": "./dist/style.css",
@@ -131,6 +132,7 @@
     "@onfido/castor": "^2.0.3",
     "@onfido/castor-icons": "^2.8.0",
     "@onfido/castor-react": "^2.0.3",
+    "@sentry/integrations": "^7.2.0",
     "@testing-library/dom": "^8.11.1",
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/preact": "^2.0.1",
@@ -214,10 +216,7 @@
     "sass-loader": "^12.6.0",
     "semver": "^7.3.7",
     "speed-measure-webpack-plugin": "^1.5.0",
-    "stacktrace-parser": "^0.1.10",
-    "stacktracey": "^2.1.8",
     "string-replace-loader": "^3.1.0",
-    "string-replace-webpack-plugin": "^0.1.3",
     "style-loader": "^3.3.1",
     "stylelint": "^14.0.1",
     "stylelint-config-sass-guidelines": "^9.0.1",
@@ -237,7 +236,7 @@
     "yn": "^3.0.0"
   },
   "dependencies": {
-    "@sentry/browser": "^6.19.7",
+    "@sentry/browser": "^7.2.0",
     "blueimp-load-image": "~2.29.0",
     "classnames": "~2.2.5",
     "core-js": "^3.21.1",

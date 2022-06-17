@@ -12,7 +12,13 @@ import TerserPlugin from 'terser-webpack-plugin'
 import nodeExternals from 'webpack-node-externals'
 import { ModifySourcePlugin } from 'modify-source-webpack-plugin'
 
-import { appendLogging } from './build/morph'
+import runMorph, { getSourceFileAsString } from './build/morph/build.morph'
+
+if (!process.env.HOT_RELOAD_ENABLED) {
+  console.log('Running morph')
+  runMorph()
+  console.log('Completed morph')
+}
 
 // NODE_ENV can be one of: development | staging | test | production
 const NODE_ENV = process.env.NODE_ENV || 'production'
@@ -205,56 +211,56 @@ const formatDefineHash = (defineHash) => {
 }
 const WOOPRA_WINDOW_KEY = 'onfidoSafeWindow8xmy484y87m239843m20'
 
-const basePlugins = (bundle_name = '') => [
-  new ModifySourcePlugin({
-    rules: [
-      {
-        test: /\.tsx$/,
-        modify: (src, path) => {
-          if (process.env.BUILD_MODE !== 'hot') {
-            return appendLogging(path)
-          }
-          return src
-        },
-      },
-    ],
-  }),
-  new Visualizer({
-    filename: `./reports/statistics.html`,
-  }),
-  new BundleAnalyzerPlugin({
-    analyzerMode: 'static',
-    openAnalyzer: false,
-    reportFilename: `${__dirname}/dist/reports/bundle_${
-      bundle_name === 'npm' ? 'npm_size.html' : `${SDK_ENV}_dist_size.html`
-    }`,
-    defaultSizes: 'gzip',
-  }),
-  new webpack.NoEmitOnErrorsPlugin(),
-  new webpack.DefinePlugin(
-    formatDefineHash({
-      ...CONFIG,
-      NODE_ENV,
-      SDK_ENV,
-      PRODUCTION_BUILD,
-      SDK_VERSION: packageJson.version,
-      SDK_SOURCE: 'onfido_web_sdk',
-      // We use a Base 32 version string for the cross-device flow, to make URL
-      // string support easier...
-      // ref: https://en.wikipedia.org/wiki/Base32
-      // NOTE: please leave the BASE_32_VERSION be! It is updated automatically by
-      // the release script 🤖
-      BASE_32_VERSION: 'DM',
-      PRIVACY_FEATURE_ENABLED: false,
-      JWT_FACTORY: CONFIG.JWT_FACTORY,
-      US_JWT_FACTORY: CONFIG.US_JWT_FACTORY,
-      CA_JWT_FACTORY: CONFIG.CA_JWT_FACTORY,
-      SDK_TOKEN_FACTORY_SECRET,
-      WOOPRA_WINDOW_KEY,
-      WOOPRA_IMPORT: `imports-loader?this=>Window.prototype["${WOOPRA_WINDOW_KEY}"],window=>Window.prototype["${WOOPRA_WINDOW_KEY}"]!wpt/wpt.js`,
-    })
-  ),
-]
+const basePlugins = (bundle_name = '') =>
+  [
+    !process.env.HOT_RELOAD_ENABLED &&
+      new ModifySourcePlugin({
+        rules: [
+          {
+            test: /\.tsx$/,
+            modify: (_src, path) => {
+              return getSourceFileAsString(path)
+            },
+          },
+        ],
+      }),
+    new Visualizer({
+      filename: `./reports/statistics.html`,
+    }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: 'static',
+      openAnalyzer: false,
+      reportFilename: `${__dirname}/dist/reports/bundle_${
+        bundle_name === 'npm' ? 'npm_size.html' : `${SDK_ENV}_dist_size.html`
+      }`,
+      defaultSizes: 'gzip',
+    }),
+    new webpack.NoEmitOnErrorsPlugin(),
+    new webpack.DefinePlugin(
+      formatDefineHash({
+        ...CONFIG,
+        NODE_ENV,
+        SDK_ENV,
+        PRODUCTION_BUILD,
+        SDK_VERSION: packageJson.version,
+        SDK_SOURCE: 'onfido_web_sdk',
+        HOT_RELOAD_ENABLED: process.env.HOT_RELOAD_ENABLED,
+        // We use a Base 32 version string for the cross-device flow, to make URL
+        // string support easier...
+        // ref: https://en.wikipedia.org/wiki/Base32
+        // NOTE: please leave the BASE_32_VERSION be! It is updated automatically by
+        // the release script 🤖
+        BASE_32_VERSION: 'DJ',
+        PRIVACY_FEATURE_ENABLED: false,
+        JWT_FACTORY: CONFIG.JWT_FACTORY,
+        US_JWT_FACTORY: CONFIG.US_JWT_FACTORY,
+        CA_JWT_FACTORY: CONFIG.CA_JWT_FACTORY,
+        SDK_TOKEN_FACTORY_SECRET,
+        WOOPRA_WINDOW_KEY,
+        WOOPRA_IMPORT: `imports-loader?this=>Window.prototype["${WOOPRA_WINDOW_KEY}"],window=>Window.prototype["${WOOPRA_WINDOW_KEY}"]!wpt/wpt.js`,
+      })
+    ),
+  ].filter(Boolean)
 
 const baseConfig = {
   mode: PRODUCTION_BUILD ? 'production' : 'development',
@@ -356,7 +362,10 @@ const configDist = () => ({
           }),
         ]
       : []),
-    // see MiniCssExtractPlugin on the bottom of the file...
+    new MiniCssExtractPlugin({
+      filename: 'style.css',
+      chunkFilename: `onfido${SDK_ENV === 'Auth' ? SDK_ENV : ''}.[name].css`,
+    }),
     new HtmlWebpackPlugin({
       template: './demo/demo.ejs',
       filename: 'index.html',
@@ -488,6 +497,7 @@ const configNpmLib = () => ({
   ],
 })
 
+// NOTE: Temporary disabled
 // TODO: fix plugins: https://github.com/stephencookdev/speed-measure-webpack-plugin
 // Workaround for https://github.com/stephencookdev/speed-measure-webpack-plugin/issues/167
 // const smp = new SpeedMeasurePlugin()
@@ -503,13 +513,5 @@ const configNpmLib = () => ({
 //   ? [configWithSpeedMeasures]
 //   : [configWithSpeedMeasures, configNpmLib()]
 
-const d = configDist()
-d.plugins.unshift(
-  new MiniCssExtractPlugin({
-    filename: 'style.css',
-    chunkFilename: `onfido${SDK_ENV === 'Auth' ? SDK_ENV : ''}.[name].css`,
-  })
-)
-
-// export default [d]
-export default SDK_ENV === 'Auth' ? [d] : [d, configNpmLib()]
+const config = configDist()
+export default SDK_ENV === 'Auth' ? [config] : [config, configNpmLib()]

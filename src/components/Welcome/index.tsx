@@ -12,7 +12,6 @@ import { DefaultContent, DocVideoContent } from './Content'
 import style from './style.scss'
 import type { StepComponentBaseProps } from '~types/routers'
 import type { StepTypes } from '~types/steps'
-import { logger } from '../../core/logging/Logger'
 
 const CAPTURE_STEP_TYPES: Set<StepTypes> = new Set([
   'document',
@@ -86,9 +85,6 @@ const Welcome: FunctionComponent<StepComponentBaseProps> = ({
   const captureSteps = steps
     .filter((step) => CAPTURE_STEP_TYPES.has(step.type))
     .map((stepConfig) => stepConfig.type)
-
-  logger.fatal('From <Welcome/> screen')
-  console.log('<Welcome/>')
 
   return (
     <ScreenLayout
