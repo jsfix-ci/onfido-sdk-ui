@@ -75,7 +75,7 @@ const SdkDemo: FunctionComponent<Props> = ({
 
     if (queryParamToValueString.token) {
       setToken(queryParamToValueString.token)
-    } else {
+    } else if (!token) {
       getToken(
         hasPreview,
         url,
