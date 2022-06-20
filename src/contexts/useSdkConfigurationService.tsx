@@ -33,13 +33,11 @@ export const SdkConfigurationServiceProvider = ({
   url,
   token,
   fallback,
-  overrideConfiguration = {},
+  overrideConfiguration,
 }: SdkConfigurationServiceProviderProps) => {
   const [configuration, setConfiguration] = useState<
     SdkConfiguration | undefined
   >(undefined)
-
-  const [overrideConfigurationState] = useState(overrideConfiguration)
 
   useEffect(() => {
     if (!url || !token) {
@@ -51,14 +49,14 @@ export const SdkConfigurationServiceProvider = ({
           deepmerge(
             deepmerge(defaultConfiguration, apiConfiguration),
             // TODO: Cleanup the overrideConfigurationState and add it to the mock server
-            process.env.NODE_ENV === 'production'
+            process.env.NODE_ENV === 'production' || !overrideConfiguration
               ? {}
-              : overrideConfigurationState
+              : overrideConfiguration
           )
         )
       )
       .catch(() => setConfiguration(defaultConfiguration))
-  }, [url, token, overrideConfigurationState])
+  }, [url, token, overrideConfiguration])
 
   if (!configuration) {
     return <Fragment>{fallback}</Fragment>

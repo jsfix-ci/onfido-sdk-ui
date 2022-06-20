@@ -8,6 +8,10 @@ This project adheres to the Node [default version scheme](https://docs.npmjs.com
 
 ## [next-version]
 
+### Fixed
+
+- Internal: Support overriding SDK configuration dynamically
+
 ## [8.1.0] - 2022-06-13
 
 ### Changed
