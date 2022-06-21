@@ -76,28 +76,31 @@ const withCrossDeviceWhenNoCamera = <P extends CaptureComponentProps>(
         (docVideoRequested && !mobileFlow)
       ) {
         if (mobileFlow) {
-          triggerOnError(
-            buildError('Already on cross device flow but no camera detected')
-          )
+          triggerIntergratorError(CROSS_DEVICE_WITHOUT_CAMERA)
+          // triggerOnError(
+          //   buildError('Already on cross device flow but no camera detected')
+          // )
           return
         }
 
         if (mobileFlow && !uploadFallback) {
-          triggerOnError(
-            buildError(
-              'Unable to complete the flow: upload fallback not allowed'
-            )
-          )
+          triggerIntergratorError(UNABLE_TO_COMPLETE_FLOW_FALLBACK_NOT_ALLOWED)
+          // triggerOnError(
+          //   buildError(
+          //     'Unable to complete the flow: upload fallback not allowed'
+          //   )
+          // )
           return
         }
 
         if (!isDesktop) {
           if (cameraRequiredButNoneDetected) {
-            triggerOnError(
-              buildError(
-                'Camera required: Either device has no camera or browser is unable to detect camera'
-              )
-            )
+            triggerIntergratorError(UNABLE_TO_DETECT_CAMERA)
+            // triggerOnError(
+            //   buildError(
+            //     'Camera required: Either device has no camera or browser is unable to detect camera'
+            //   )
+            // )
           }
           // The cross device option should not be available when the user is already using a mobile device
           return

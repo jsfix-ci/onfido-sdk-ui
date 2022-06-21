@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Project } from 'ts-morph'
 import { join } from 'path'
 
@@ -11,7 +12,7 @@ export const getProject = () => {
   })
 
   projectCache.addSourceFilesAtPaths([
-    '!src/**/{__integrations__,__mocks__,__tests__}/**/*{.d.ts,.ts,.tsx,.js,.jsx}',
+    // '!src/**/{__integrations__,__mocks__,__tests__}/**/*{.d.ts,.ts,.tsx,.js,.jsx}',
     'src/**/*{.d.ts,.ts,.tsx,.js,.jsx}',
   ])
 

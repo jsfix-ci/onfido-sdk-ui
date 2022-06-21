@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { Node } from 'ts-morph'
 import { fromBasePath } from './project'
 
