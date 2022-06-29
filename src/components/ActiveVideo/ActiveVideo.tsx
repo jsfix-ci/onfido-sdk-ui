@@ -1,9 +1,9 @@
-import { ActiveVideoCapture, LivenessError } from '@onfido/active-video-capture'
 import { h, FunctionComponent } from 'preact'
 import { useState } from 'preact/hooks'
 import { localised } from '~locales'
 import type { WithLocalisedProps } from '~types/hocs'
 import type { StepComponentBaseProps } from '~types/routers'
+import { Orchestration } from './Orchestration'
 
 type Props = StepComponentBaseProps & WithLocalisedProps
 
@@ -36,18 +36,11 @@ const ActiveVideo: FunctionComponent<Props> = (props) => {
 
   // See: https://github.com/preactjs/preact/issues/2748
   return (
-    <ActiveVideoCapture
-      debug={true}
-      options={{
-        language: localisedText,
-      }}
-      onError={(event: LivenessError) => console.error(event)}
-      onSuccess={({ videoPayload }) => {
-        if (!success) {
-          setVideoPayload(videoPayload)
-          setSuccess(true)
-        }
-
+    <Orchestration
+      locale={localisedText}
+      onVideoPayload={(file) => {
+        setVideoPayload(file)
+        setSuccess(true)
         nextStep()
       }}
     />
