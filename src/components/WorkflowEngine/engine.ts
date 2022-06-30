@@ -60,7 +60,7 @@ export class Engine implements EngineInterface {
           formatError(request, reject)
         )
       } catch (error) {
-        console.log('API error: ', error)
+        // console.log('API error: ', error)
         reject(error)
       }
     })

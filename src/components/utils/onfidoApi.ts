@@ -1,6 +1,7 @@
 import { hmac256, mimeType } from './blob'
 import { parseJwt } from './jwt'
 import { performHttpReq, HttpRequestParams } from './http'
+// import { performHttpReq, HttpRequestParams } from '~core/Network/Network'
 import { forEach } from './object'
 import { sendEvent, trackException } from '../../Tracker'
 import detectSystem from './detectSystem'
@@ -547,29 +548,46 @@ const sendFile = <T>(
   )
 }
 
-export const sendAnalytics = (
+export const sendAnalytics = <T>(
   url: string | undefined,
   payload: string
 ): void => {
   const endpoint = `${url}/v3/analytics`
-  const request = new XMLHttpRequest()
-  request.open('POST', endpoint)
-  request.setRequestHeader('Content-Type', 'application/json')
 
-  request.onload = () => {
-    const isSuccessfulRequest = request.status === 200 || request.status === 201
-    if (!isSuccessfulRequest) {
+  // Note: v3/application expects token in body, not in header
+  performHttpReq(
+    {
+      method: 'POST',
+      contentType: 'application/json',
+      endpoint,
+      payload,
+    },
+    () => {},
+    (request) => {
       trackException(
         `analytics request error - status: ${request.status}, response: ${request.response}`
       )
     }
-  }
-  request.onerror = () =>
-    trackException(
-      `analytics request error - status: ${request.status}, response: ${request.response}`
-    )
+  )
 
-  request.send(payload)
+  // const request = new XMLHttpRequest()
+  // request.open('POST', endpoint)
+  // request.setRequestHeader('Content-Type', 'application/json')
+
+  // request.onload = () => {
+  //   const isSuccessfulRequest = request.status === 200 || request.status === 201
+  //   if (!isSuccessfulRequest) {
+  //     trackException(
+  //       `analytics request error - status: ${request.status}, response: ${request.response}`
+  //     )
+  //   }
+  // }
+  // request.onerror = () =>
+  //   trackException(
+  //     `analytics request error - status: ${request.status}, response: ${request.response}`
+  //   )
+
+  // request.send(payload)
 }
 
 export const getSdkConfiguration = (

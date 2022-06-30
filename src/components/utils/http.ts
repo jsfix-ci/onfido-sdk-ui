@@ -1,3 +1,5 @@
+import network from '~core/Network'
+
 import type { ApiRawError, SuccessCallback } from '~types/api'
 
 export type HttpRequestParams = {
@@ -8,8 +10,9 @@ export type HttpRequestParams = {
   payload?: string | FormData
   token: string
 }
-
-export const performHttpReq = <T>(
+console.log('network', network)
+export const performHttpReq = network.performHttpRequest
+export const performHttpReq2 = <T>(
   {
     method = 'POST',
     contentType,
