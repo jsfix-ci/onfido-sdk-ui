@@ -286,6 +286,7 @@ export interface SdkConfigurationValidationsOnDevice {
 }
 
 export type SdkConfiguration = {
+  loading: boolean
   validations?: SdkConfigurationValidations
   experimental_features?: ExperimentalFeatures
   document_capture: DocumentCapture

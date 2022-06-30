@@ -258,6 +258,7 @@
     "socket.io-client": "^4.2.0",
     "supports-webp": "~1.0.3",
     "uuid": "^8.3.2",
-    "visibilityjs": "~1.2.4"
+    "visibilityjs": "~1.2.4",
+    "zustand": "^4.0.0-rc.1"
   }
 }
