@@ -30,10 +30,8 @@ export const basePlugins = (bundle_name = '') =>
       new ModifySourcePlugin({
         rules: [
           {
-            test: /\.tsx$/,
-            modify: (_src, path) => {
-              return getSourceFileAsString(path)
-            },
+            test: new RegExp(`${BASE_DIR}/src/(.+/)?.+.(ts)x?$`),
+            modify: (src, path) => getSourceFileAsString(path) || src,
           },
         ],
       }),

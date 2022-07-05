@@ -14,6 +14,7 @@ This project adheres to the Node [default version scheme](https://docs.npmjs.com
 - Internal: Upgraded Sentry to v7, added ErrorBoundary, fingerprinting and moved into its own module
 - Internal: Move Woopra into it's own core module
 - Internal: Migrate webpack to typescript
+- Internal: Add Logger module
 
 ## [8.1.0] - 2022-06-13
 
