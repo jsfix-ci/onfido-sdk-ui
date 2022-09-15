@@ -265,7 +265,7 @@
     "redux": "^4.0.5",
     "socket.io-client": "^4.2.0",
     "supports-webp": "~1.0.3",
-    "uuid": "^8.3.2",
+    "uuid": "^9.0.0",
     "visibilityjs": "~1.2.4"
   }
 }
